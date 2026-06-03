@@ -1,0 +1,227 @@
+name: "My - packages"
+on:
+  push:
+    branches: 
+      - **
+permissions:
+  actions: read # for detecting the Github Actions environment.
+  id-token: write # for creating OIDC tokens for signing.
+  packages: write # for uploading attestations.
+  contents: read
+  security-events: write # Required for uploading code scanning.
+  attestations: write
+  pages: write
+env:
+  BUILD_NAME: "spring-petclinic-rest"
+  RUN_ID: "${{github.run_id}}"
+  DOCKER_REGISTRY: 'docker.io'
+  DOCKER_ORG: 'krishnamanchikalapudi'
+  DEFAULT_WORKSPACE: "${{github.workspace}}"  # /home/runner/work/spring-petclinic/spring-petclinic
+jobs:
+  DockerWithH2Database:
+    name: "H2 Database package"
+    runs-on: ubuntu-latest # https://github.com/actions/runner-images
+    outputs:
+      image_todays_tag: ${{ steps.set_var.outputs.TODAYS_DATE }}
+    strategy:
+      matrix:
+        java: [ '25' ]
+    env:
+        BUILD_ID: "h2" 
+        DOCKER_BUILDX_PLATFORMS: 'linux/amd64,linux/arm64'
+    defaults:
+       run:
+         working-directory: "${{env.DEFAULT_WORKSPACE}}"
+    steps:
+        - name: "Clone VCS"
+          uses: actions/checkout@v5     # ref: https://github.com/actions/checkout
+        
+        - name: "Setup JDK ${{matrix.java}}"
+          uses: actions/setup-java@v5   # ref https://github.com/actions/setup-java (Node 24)
+          with:
+            distribution: 'temurin'
+            java-version: ${{matrix.java}}  # 17
+            cache: 'maven'
+            cache-dependency-path: 'pom.xml'
+        
+        - name: "Env vars and info"
+          id: set_var
+          run: |
+            echo "ARTIFACT_NAME=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
+            echo "ARTIFACT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+            echo "SHORT_COMMIT_CODE=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+            echo "TODAYS_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+        - name: "Docker: authentication" 
+          id: config-docker
+          uses: docker/login-action@v4      # ref https://github.com/marketplace/actions/docker-login (Node 24)
+          with:
+            registry: ${{ env.DOCKER_REGISTRY }}
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{secrets.DOCKERHUB_PASSWORD }}
+
+        - name: "Docker: Set up QEMU emulation"
+          uses: docker/setup-qemu-action@v4
+
+        - name: "Docker: Set up Buildx"
+          uses: docker/setup-buildx-action@v4   # ref: https://github.com/marketplace/actions/docker-setup-buildx (Node 24)
+          with:
+            use: true
+            platforms: ${{env.DOCKER_BUILDX_PLATFORMS}}
+            # install: true
+
+        - name: "Maven: package"
+          run: |
+            mvn clean package -Dspring.profiles.active=h2,spring-data-jpa -DskipTests -Denforcer.skip 
+
+        - name: "Evidence: GitHub Attest for JAR artifact"
+          continue-on-error: true
+          uses: actions/attest-build-provenance@v3     # https://github.com/marketplace/actions/attest-build-provenance
+          with:
+            subject-path: "target/${{env.ARTIFACT_NAME}}-${{env.ARTIFACT_VERSION}}.jar"
+            github-token: ${{secrets.GITHUB_TOKEN}} 
+            show-summary: true
+        
+        - name: Extract metadata
+          id: meta
+          uses: docker/metadata-action@v6
+          with:
+            images: ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}
+
+        - name: "Docker build and push"
+          id: build
+          uses: docker/build-push-action@v7     # https://github.com/docker/build-push-action (Node 24)  
+          env:
+            DOCKER_BUILD_SUMMARY: false
+          with:
+            push: true
+            context: .
+            provenance: mode=max
+            file: ./BOOTCAMP/Dockerfile
+            platforms: ${{env.DOCKER_BUILDX_PLATFORMS}}
+            sbom: true
+            build-args: |
+              JAR_FILE=./target/${{env.ARTIFACT_NAME}}-${{env.ARTIFACT_VERSION}}.jar
+            tags: |
+              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
+              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
+              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
+              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
+
+        - name: "Evidence: GitHub Attest for docker image"
+          continue-on-error: true
+          uses: actions/attest-build-provenance@v3     # https://github.com/marketplace/actions/attest-build-provenance
+          with:
+            subject-name: '${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_ORG }}/${{ env.ARTIFACT_NAME }}'
+            subject-digest: ${{ steps.build.outputs.digest }}
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            push-to-registry: true
+            show-summary: true
+
+  DockerWithPostgresSQL:
+    name: "PostgreSQL Database package"
+    runs-on: ubuntu-latest # https://github.com/actions/runner-images
+    outputs:
+      image_todays_tag: ${{ steps.set_var.outputs.TODAYS_DATE }}
+    strategy:
+      matrix:
+        java: [ '25' ]
+    env:
+        BUILD_ID: "postgres" 
+        DOCKER_BUILDX_PLATFORMS: 'linux/amd64,linux/arm64'
+    defaults:
+       run:
+         working-directory: "${{env.DEFAULT_WORKSPACE}}"
+    steps:
+        - name: "Clone VCS"
+          uses: actions/checkout@v5     # ref: https://github.com/actions/checkout
+        
+        - name: "Setup JDK ${{matrix.java}}"
+          uses: actions/setup-java@v5   # ref https://github.com/actions/setup-java (Node 24)
+          with:
+            distribution: 'temurin'
+            java-version: ${{matrix.java}}  # 17
+            cache: 'maven'
+            cache-dependency-path: 'pom.xml'
+        
+        - name: "Env vars and info"
+          id: set_var
+          run: |
+            echo "ARTIFACT_NAME=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)" >> $GITHUB_ENV
+            echo "ARTIFACT_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+            echo "SHORT_COMMIT_CODE=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+            echo "TODAYS_DATE=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+        - name: "Docker: authentication" 
+          id: config-docker
+          uses: docker/login-action@v4      # ref https://github.com/marketplace/actions/docker-login (Node 24)
+          with:
+            registry: ${{ env.DOCKER_REGISTRY }}
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{secrets.DOCKERHUB_PASSWORD }}
+
+        - name: "Docker: Set up QEMU emulation"
+          uses: docker/setup-qemu-action@v4
+
+        - name: "Docker: Set up Buildx"
+          uses: docker/setup-buildx-action@v4   # ref: https://github.com/marketplace/actions/docker-setup-buildx (Node 24)
+          with:
+            use: true
+            platforms: ${{env.DOCKER_BUILDX_PLATFORMS}}
+            # install: true
+
+        - name: "Maven: package"
+          run: |
+            mvn clean package -Dspring.profiles.active=postgres,spring-data-jpa -DskipTests -Denforcer.skip 
+
+        - name: "Evidence: GitHub Attest for JAR artifact"
+          continue-on-error: true
+          uses: actions/attest-build-provenance@v3     # https://github.com/marketplace/actions/attest-build-provenance
+          with:
+            subject-path: "target/${{env.ARTIFACT_NAME}}-${{env.ARTIFACT_VERSION}}.jar"
+            github-token: ${{secrets.GITHUB_TOKEN}} 
+            show-summary: true
+        
+        - name: Extract metadata
+          id: meta
+          uses: docker/metadata-action@v6
+          with:
+            images: ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}
+
+        - name: "Docker build and push"
+          id: build
+          uses: docker/build-push-action@v7     # https://github.com/docker/build-push-action (Node 24)  
+          env:
+            DOCKER_BUILD_SUMMARY: false
+          with:
+            push: true
+            context: .
+            provenance: mode=max
+            file: ./BOOTCAMP/Dockerfile
+            platforms: ${{env.DOCKER_BUILDX_PLATFORMS}}
+            sbom: true
+            build-args: |
+              JAR_FILE=./target/${{env.ARTIFACT_NAME}}-${{env.ARTIFACT_VERSION}}.jar
+            tags: |
+              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
+              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
+              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
+              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
+              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
+              
+        - name: "Evidence: GitHub Attest for docker image"
+          continue-on-error: true
+          uses: actions/attest-build-provenance@v3     # https://github.com/marketplace/actions/attest-build-provenance
+          with:
+            subject-name: '${{ env.DOCKER_REGISTRY }}/${{ env.DOCKER_ORG }}/${{ env.ARTIFACT_NAME }}'
+            subject-digest: ${{ steps.build.outputs.digest }}
+            github-token: ${{ secrets.GITHUB_TOKEN }}
+            push-to-registry: true
+            show-summary: true
