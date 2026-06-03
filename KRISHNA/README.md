@@ -55,6 +55,19 @@ The target stack for the labs is:
   git clone https://github.com/krishnamanchikalapudi/bootcamp-spring-petclinic-rest.git
 ```
 
+## Execute
+- run: default is RESTART (stop, start, validate)
+```bash
+./KRISHNA/docker-val.sh     
+```
+- info
+```bash
+./KRISHNA/docker-val.sh info
+```
+- stop
+```bash
+./KRISHNA/docker-val.sh stop
+```
 
 
 ## Schedule: Bootcamp Goal
