@@ -94,7 +94,7 @@ jobs:
             push: true
             context: .
             provenance: mode=max
-            file: ./BOOTCAMP/Dockerfile
+            file: ./KRISHNA/Dockerfile
             platforms: ${{env.DOCKER_BUILDX_PLATFORMS}}
             sbom: true
             build-args: |
@@ -198,7 +198,7 @@ jobs:
             push: true
             context: .
             provenance: mode=max
-            file: ./BOOTCAMP/Dockerfile
+            file: ./KRISHNA/Dockerfile
             platforms: ${{env.DOCKER_BUILDX_PLATFORMS}}
             sbom: true
             build-args: |
