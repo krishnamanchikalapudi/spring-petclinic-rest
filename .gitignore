@@ -24,3 +24,8 @@ springboot-petclinic-server/
 
 # newman reports
 ./src/test/postman/reports/
+
+.DS_Store
+Thumbs.db
+**/.DS_Store
+**/Thumbs.db

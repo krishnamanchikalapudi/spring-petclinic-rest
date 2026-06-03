@@ -1,0 +1,39 @@
+services:
+  # ── PostgreSQL + pgvector: http://localhost:5432 ────────────
+  postgresql:
+    image: pgvector/pgvector:pg18       # https://hub.docker.com/r/pgvector/pgvector/tags
+    container_name: postgresql
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: petclinic
+      POSTGRES_USER: petclinic
+      POSTGRES_PASSWORD: petclinic
+    volumes:
+      - ./postgres.sql:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U petclinic -d petclinic"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+# ── Spring rest api: http://localhost:9966 ────────────
+
+  petclinic:
+    image: krishnamanchikalapudi/spring-petclinic-rest:postgres      # https://hub.docker.com/repository/docker/krishnamanchikalapudi/spring-petclinic-rest/tags
+    container_name: petclinic
+    ports:
+      - "9966:9966"
+    environment:
+      SPRING_PROFILES_ACTIVE: postgres,spring-data-jpa
+      POSTGRES_URL: jdbc:postgresql://postgresql:5432/petclinic
+      POSTGRES_USER: petclinic
+      POSTGRES_PASS: petclinic
+      POSTGRES_DB: petclinic
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  postgres-data: {}

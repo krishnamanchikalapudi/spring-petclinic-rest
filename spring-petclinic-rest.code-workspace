@@ -4,5 +4,12 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"/^\\./KRISHNA/docker-val\\.sh restart$/": {
+				"approve": true,
+				"matchCommandLine": true
+			}
+		}
+	}
 }
