@@ -9,27 +9,31 @@ info:
 servers:
   - url: http://localhost:9966/petclinic/api
 tags:
-  - name: failing
+  - name: oops
     description: Endpoint which always returns an error.
-  - name: owner
+  - name: owners
     description: Endpoints related to pet owners.
-  - name: user
+  - name: owner-v2
+    description: Version 2 endpoints related to pet owners.
+  - name: users
     description: Endpoints related to users.
-  - name: pet
+  - name: pets
     description: Endpoints related to pets.
-  - name: vet
+  - name: pet-v2
+    description: Version 2 endpoints related to pets.
+  - name: vets
     description: Endpoints related to vets.
-  - name: visit
+  - name: visits
     description: Endpoints related to vet visits.
   - name: pettypes
     description: Endpoints related to pet types.
-  - name: specialty
+  - name: specialties
     description: Endpoints related to vet specialties.
 paths:
   /oops:
     get:
       tags:
-        - failing
+        - oops
       operationId: failingRequest
       summary: Always fails
       description: Produces sample error response.
@@ -61,7 +65,7 @@ paths:
   /owners:
     post:
       tags:
-        - owner
+        - owners
       operationId: addOwner
       summary: Adds a pet owner
       description: Records the details of a new pet owner.
@@ -93,7 +97,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     get:
       tags:
-        - owner
+        - owners
       operationId: listOwners
       summary: Lists pet owners
       description: Returns an array of pet owners.
@@ -135,7 +139,7 @@ paths:
   /v2/owners:
     get:
       tags:
-        - owner
+        - owner-v2
       operationId: listOwnersPage
       summary: Lists pet owners with pagination
       description: Returns a page of pet owners.
@@ -202,7 +206,7 @@ paths:
   /owners/{ownerId}:
     get:
       tags:
-        - owner
+        - owners
       operationId: getOwner
       summary: Get a pet owner by ID
       description: Returns the pet owner or a 404 error.
@@ -255,7 +259,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     put:
       tags:
-        - owner
+        - owners
       operationId: updateOwner
       summary: Update a pet owner's details
       description: Updates the pet owner record with the specified details.
@@ -304,7 +308,7 @@ paths:
 
     delete:
       tags:
-        - owner
+        - owners
       operationId: deleteOwner
       summary: Delete an owner by ID
       description: Returns the owner or a 404 error.
@@ -358,7 +362,7 @@ paths:
   /owners/{ownerId}/pets:
     post:
       tags:
-        - pet
+        - owners
       operationId: addPetToOwner
       summary: Adds a pet to an owner
       description: Records the details of a new pet.
@@ -407,7 +411,7 @@ paths:
   /owners/{ownerId}/pets/{petId}:
     get:
       tags:
-        - pet
+        - owners
       operationId: getOwnersPet
       summary: Get a pet by ID
       description: Returns the pet or a 404 error.
@@ -469,7 +473,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     put:
       tags:
-        - pet
+        - owners
       operationId: updateOwnersPet
 
       summary: Update a pet's details
@@ -524,7 +528,7 @@ paths:
   /owners/{ownerId}/pets/{petId}/visits:
     post:
       tags:
-        - visit
+        - owners
       operationId: addVisitToOwner
       summary: Adds a vet visit
       description: Records the details of a new vet visit.
@@ -834,7 +838,7 @@ paths:
   /pets:
     get:
       tags:
-        - pet
+        - pets
       operationId: listPets
       summary: Lists pet
       description: Returns an array of pet .
@@ -865,10 +869,64 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProblemDetail'
+  /v2/pets:
+    get:
+      tags:
+        - pet-v2
+      operationId: listPetsPage
+      summary: Lists pets with pagination.
+      description: Returns a page of pets.
+      parameters:
+        - name: page
+          in: query
+          description: Zero-based page index.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+            default: 0
+            example: 0
+        - name: size
+          in: query
+          description: Number of items per page.
+          required: false
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 100
+            default: 20
+            example: 5
+      responses:
+        200:
+          description: Page of pets found and returned.
+          headers:
+            ETag:
+              description: An ID for this version of the response.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PetPage'
+        400:
+          description: Bad request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+        500:
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
   /pets/{petId}:
     get:
       tags:
-        - pet
+        - pets
       operationId: getPet
       summary: Get a pet by ID
       description: Returns the pet  or a 404 error.
@@ -921,7 +979,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     put:
       tags:
-        - pet
+        - pets
       operationId: updatePet
       summary: Update a pet by ID
       description: Returns the pet or a 404 error.
@@ -981,7 +1039,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     delete:
       tags:
-        - pet
+        - pets
       operationId: deletePet
       summary: Delete a pet by ID
       description: Returns the pet or a 404 error.
@@ -1035,7 +1093,7 @@ paths:
   /visits:
     get:
       tags:
-        - visit
+        - visits
       operationId: listVisits
       summary: Lists visits
       description: Returns an array of visit .
@@ -1068,7 +1126,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     post:
       tags:
-        - visit
+        - visits
       operationId: addVisit
       summary: Create a visit
       description: Creates a visit.
@@ -1119,7 +1177,7 @@ paths:
   /visits/{visitId}:
     get:
       tags:
-        - visit
+        - visits
       operationId: getVisit
       summary: Get a visit by ID
       description: Returns the visit or a 404 error.
@@ -1172,7 +1230,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     put:
       tags:
-        - visit
+        - visits
       operationId: updateVisit
       summary: Update a visit by ID
       description: Returns the visit or a 404 error.
@@ -1232,7 +1290,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     delete:
       tags:
-        - visit
+        - visits
       operationId: deleteVisit
       summary: Delete a visit by ID
       description: Returns the visit or a 404 error.
@@ -1286,7 +1344,7 @@ paths:
   /specialties:
     get:
       tags:
-        - specialty
+        - specialties
       operationId: listSpecialties
       summary: Lists specialties
       description: Returns an array of specialty .
@@ -1319,7 +1377,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     post:
       tags:
-        - specialty
+        - specialties
       operationId: addSpecialty
       summary: Create a specialty
       description: Creates a specialty .
@@ -1370,7 +1428,7 @@ paths:
   /specialties/{specialtyId}:
     get:
       tags:
-        - specialty
+        - specialties
       operationId: getSpecialty
       summary: Get a specialty by ID
       description: Returns the specialty or a 404 error.
@@ -1423,7 +1481,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     put:
       tags:
-        - specialty
+        - specialties
       operationId: updateSpecialty
       summary: Update a specialty by ID
       description: Returns the specialty or a 404 error.
@@ -1483,7 +1541,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     delete:
       tags:
-        - specialty
+        - specialties
       operationId: deleteSpecialty
       summary: Delete a specialty by ID
       description: Returns the specialty or a 404 error.
@@ -1537,7 +1595,7 @@ paths:
   /vets:
     get:
       tags:
-        - vet
+        - vets
       operationId: listVets
       summary: Lists vets
       description: Returns an array of vets.
@@ -1571,7 +1629,7 @@ paths:
 
     post:
       tags:
-        - vet
+        - vets
       operationId: addVet
       summary: Create a Vet
       description: Creates a vet .
@@ -1622,7 +1680,7 @@ paths:
   /vets/{vetId}:
     get:
       tags:
-        - vet
+        - vets
       operationId: getVet
       summary: Get a vet by ID
       description: Returns the vet or a 404 error.
@@ -1675,7 +1733,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     put:
       tags:
-        - vet
+        - vets
       operationId: updateVet
       summary: Update a vet  by ID
       description: Returns the vet or a 404 error.
@@ -1735,7 +1793,7 @@ paths:
                 $ref: '#/components/schemas/ProblemDetail'
     delete:
       tags:
-        - vet
+        - vets
       operationId: deleteVet
       summary: Delete a vet by ID
       description: Returns the vet or a 404 error.
@@ -1789,7 +1847,7 @@ paths:
   /users:
     post:
       tags:
-        - user
+        - users
       operationId: addUser
       summary: Create a user
       description: Creates a user.
@@ -2031,6 +2089,51 @@ components:
         totalElements:
           title: Total elements
           description: Total number of owners matching the request.
+          type: integer
+          format: int64
+          minimum: 0
+          example: 10
+        totalPages:
+          title: Total pages
+          description: Total number of pages matching the request.
+          type: integer
+          format: int32
+          minimum: 0
+          example: 2
+      required:
+        - content
+        - page
+        - size
+        - totalElements
+        - totalPages
+    PetPage:
+      title: Pet page
+      description: A page of pets.
+      type: object
+      properties:
+        content:
+          title: Content
+          description: Pets in the requested page.
+          type: array
+          items:
+            $ref: '#/components/schemas/Pet'
+        page:
+          title: Page
+          description: Zero-based page index.
+          type: integer
+          format: int32
+          minimum: 0
+          example: 0
+        size:
+          title: Size
+          description: Requested page size.
+          type: integer
+          format: int32
+          minimum: 1
+          example: 5
+        totalElements:
+          title: Total elements
+          description: Total number of pets matching the request.
           type: integer
           format: int64
           minimum: 0

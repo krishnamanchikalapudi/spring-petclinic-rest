@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.springframework.samples.petclinic.rest.controller;
+package org.springframework.samples.petclinic.rest.controller.v1;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -41,13 +41,13 @@ import java.util.stream.Collectors;
 @RestController
 @CrossOrigin(exposedHeaders = "errors, content-type")
 @RequestMapping("api")
-public class VetRestController implements VetsApi {
+public class VetRestControllerV1 implements VetsApi {
 
     private final ClinicService clinicService;
     private final VetMapper vetMapper;
     private final SpecialtyMapper specialtyMapper;
 
-    public VetRestController(ClinicService clinicService, VetMapper vetMapper, SpecialtyMapper specialtyMapper) {
+    public VetRestControllerV1(ClinicService clinicService, VetMapper vetMapper, SpecialtyMapper specialtyMapper) {
         this.clinicService = clinicService;
         this.vetMapper = vetMapper;
         this.specialtyMapper = specialtyMapper;

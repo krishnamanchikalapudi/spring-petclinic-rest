@@ -19,6 +19,8 @@ import java.util.List;
 
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.Repository;
 import org.springframework.samples.petclinic.model.Pet;
@@ -38,4 +40,10 @@ public interface SpringDataPetRepository extends PetRepository, Repository<Pet, 
     @Override
     @Query("SELECT ptype FROM PetType ptype ORDER BY ptype.name")
     List<PetType> findPetTypes() throws DataAccessException;
+
+    @Override
+    @Query(
+        value = "SELECT pet FROM Pet pet",
+        countQuery = "SELECT count(pet) FROM Pet pet")
+    Page<Pet> findAll(Pageable pageable);
 }

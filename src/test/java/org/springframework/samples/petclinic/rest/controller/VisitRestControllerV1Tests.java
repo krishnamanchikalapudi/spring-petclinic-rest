@@ -16,6 +16,7 @@
 
 package org.springframework.samples.petclinic.rest.controller;
 
+import org.springframework.samples.petclinic.rest.controller.v1.VisitRestControllerV1;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,17 +47,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for {@link VisitRestController}
+ * Test class for {@link VisitRestControllerV1}
  *
  * @author Vitaliy Fedoriv
  */
 @SpringBootTest
 @ContextConfiguration(classes=ApplicationTestConfig.class)
 @WebAppConfiguration
-class VisitRestControllerTests {
+class VisitRestControllerV1Tests {
 
     @Autowired
-    private VisitRestController visitRestController;
+    private VisitRestControllerV1 visitRestControllerV1;
 
     @MockitoBean
     private ClinicService clinicService;
@@ -70,7 +71,7 @@ class VisitRestControllerTests {
 
     @BeforeEach
     void initVisits(){
-    	this.mockMvc = MockMvcBuilders.standaloneSetup(visitRestController)
+        this.mockMvc = MockMvcBuilders.standaloneSetup(visitRestControllerV1)
     			.setControllerAdvice(new ExceptionControllerAdvice())
     			.build();
 

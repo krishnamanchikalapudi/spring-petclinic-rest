@@ -1,5 +1,6 @@
 package org.springframework.samples.petclinic.rest.controller;
 
+import org.springframework.samples.petclinic.rest.controller.v1.UserRestControllerV1;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringJUnitConfig(classes = ApplicationTestConfig.class)
 @ExtendWith(MockitoExtension.class)
 @WebAppConfiguration
-class UserRestControllerTests {
+class UserRestControllerV1Tests {
 
     @Mock
     private UserService userService;
@@ -36,13 +37,13 @@ class UserRestControllerTests {
     private UserMapper userMapper;
 
     @Autowired
-    private UserRestController userRestController;
+    private UserRestControllerV1 userRestControllerV1;
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void initVets() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(userRestController)
+        this.mockMvc = MockMvcBuilders.standaloneSetup(userRestControllerV1)
             .setControllerAdvice(new ExceptionControllerAdvice()).build();
     }
 

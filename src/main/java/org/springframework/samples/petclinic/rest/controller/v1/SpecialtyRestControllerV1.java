@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.rest.controller;
+package org.springframework.samples.petclinic.rest.controller.v1;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,13 +39,13 @@ import java.util.List;
 @RestController
 @CrossOrigin(exposedHeaders = "errors, content-type")
 @RequestMapping("api")
-public class SpecialtyRestController implements SpecialtiesApi {
+public class SpecialtyRestControllerV1 implements SpecialtiesApi {
 
     private final ClinicService clinicService;
 
     private final SpecialtyMapper specialtyMapper;
 
-    public SpecialtyRestController(ClinicService clinicService, SpecialtyMapper specialtyMapper) {
+    public SpecialtyRestControllerV1(ClinicService clinicService, SpecialtyMapper specialtyMapper) {
         this.clinicService = clinicService;
         this.specialtyMapper = specialtyMapper;
     }

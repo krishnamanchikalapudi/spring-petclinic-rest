@@ -16,6 +16,7 @@
 
 package org.springframework.samples.petclinic.rest.controller;
 
+import org.springframework.samples.petclinic.rest.controller.v1.SpecialtyRestControllerV1;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,17 +43,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * Test class for {@link SpecialtyRestController}
+ * Test class for {@link SpecialtyRestControllerV1}
  *
  * @author Vitaliy Fedoriv
  */
 @SpringBootTest
 @ContextConfiguration(classes=ApplicationTestConfig.class)
 @WebAppConfiguration
-class SpecialtyRestControllerTests {
+class SpecialtyRestControllerV1Tests {
 
     @Autowired
-    private SpecialtyRestController specialtyRestController;
+    private SpecialtyRestControllerV1 specialtyRestControllerV1;
 
     @Autowired
     private SpecialtyMapper specialtyMapper;
@@ -66,7 +67,7 @@ class SpecialtyRestControllerTests {
 
     @BeforeEach
     void initSpecialtys(){
-    	this.mockMvc = MockMvcBuilders.standaloneSetup(specialtyRestController)
+        this.mockMvc = MockMvcBuilders.standaloneSetup(specialtyRestControllerV1)
     			.setControllerAdvice(new ExceptionControllerAdvice())
     			.build();
     	specialties = new ArrayList<Specialty>();

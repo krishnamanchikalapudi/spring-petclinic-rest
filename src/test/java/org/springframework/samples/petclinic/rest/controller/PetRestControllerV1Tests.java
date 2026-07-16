@@ -16,6 +16,7 @@
 
 package org.springframework.samples.petclinic.rest.controller;
 
+import org.springframework.samples.petclinic.rest.controller.v1.PetRestControllerV1;
 import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +52,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 /**
- * Test class for {@link PetRestController}
+ * Test class for {@link PetRestControllerV1}
  *
  * @author Vitaliy Fedoriv
  */
@@ -59,12 +60,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ContextConfiguration(classes = ApplicationTestConfig.class)
 @WebAppConfiguration
-class PetRestControllerTests {
+class PetRestControllerV1Tests {
 
     @MockitoBean
     protected ClinicService clinicService;
     @Autowired
-    private PetRestController petRestController;
+    private PetRestControllerV1 petRestControllerV1;
     @Autowired
     private PetMapper petMapper;
     private MockMvc mockMvc;
@@ -73,7 +74,7 @@ class PetRestControllerTests {
 
     @BeforeEach
     void initPets() {
-        this.mockMvc = MockMvcBuilders.standaloneSetup(petRestController)
+        this.mockMvc = MockMvcBuilders.standaloneSetup(petRestControllerV1)
             .setControllerAdvice(new ExceptionControllerAdvice())
             .build();
         pets = new ArrayList<>();

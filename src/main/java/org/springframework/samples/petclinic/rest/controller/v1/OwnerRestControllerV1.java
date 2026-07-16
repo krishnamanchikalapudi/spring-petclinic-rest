@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.springframework.samples.petclinic.rest.controller;
+package org.springframework.samples.petclinic.rest.controller.v1;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,10 +29,8 @@ import org.springframework.samples.petclinic.model.Owner;
 import org.springframework.samples.petclinic.model.Pet;
 import org.springframework.samples.petclinic.model.Visit;
 import org.springframework.samples.petclinic.rest.api.OwnersApi;
-import org.springframework.samples.petclinic.rest.api.V2Api;
 import org.springframework.samples.petclinic.rest.dto.OwnerDto;
 import org.springframework.samples.petclinic.rest.dto.OwnerFieldsDto;
-import org.springframework.samples.petclinic.rest.dto.OwnerPageDto;
 import org.springframework.samples.petclinic.rest.dto.PetDto;
 import org.springframework.samples.petclinic.rest.dto.PetFieldsDto;
 import org.springframework.samples.petclinic.rest.dto.VisitDto;
@@ -46,7 +40,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import jakarta.transaction.Transactional;
@@ -58,7 +51,7 @@ import jakarta.transaction.Transactional;
 @RestController
 @CrossOrigin(exposedHeaders = "errors, content-type")
 @RequestMapping("/api")
-public class OwnerRestController implements OwnersApi, V2Api {
+public class OwnerRestControllerV1 implements OwnersApi {
 
     private final ClinicService clinicService;
 
@@ -68,19 +61,14 @@ public class OwnerRestController implements OwnersApi, V2Api {
 
     private final VisitMapper visitMapper;
 
-    public OwnerRestController(ClinicService clinicService,
-                               OwnerMapper ownerMapper,
-                               PetMapper petMapper,
-                               VisitMapper visitMapper) {
+    public OwnerRestControllerV1(ClinicService clinicService,
+                                 OwnerMapper ownerMapper,
+                                 PetMapper petMapper,
+                                 VisitMapper visitMapper) {
         this.clinicService = clinicService;
         this.ownerMapper = ownerMapper;
         this.petMapper = petMapper;
         this.visitMapper = visitMapper;
-    }
-
-    @Override
-    public Optional<NativeWebRequest> getRequest() {
-        return Optional.empty();
     }
 
     @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
@@ -96,17 +84,6 @@ public class OwnerRestController implements OwnersApi, V2Api {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(ownerMapper.toOwnerDtoCollection(owners), HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
-    @Override
-    public ResponseEntity<OwnerPageDto> listOwnersPage(String lastName, Integer page, Integer size) {
-        int pageNumber = page == null ? 0 : page;
-        int pageSize = size == null ? 20 : size;
-        Page<Owner> owners = this.clinicService.findOwners(
-            lastName,
-            PageRequest.of(pageNumber, pageSize, Sort.by("id")));
-        return new ResponseEntity<>(ownerMapper.toOwnerPageDto(owners), HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole(@roles.OWNER_ADMIN)")
