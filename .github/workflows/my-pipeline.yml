@@ -83,7 +83,14 @@ jobs:
           id: meta
           uses: docker/metadata-action@v6
           with:
-            images: ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}
+            images: |
+              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}
+              ${{env.DOCKER_REGISTRY}}/${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}
+            tags: |
+              type=raw,value=${{env.BUILD_ID}}
+              type=raw,value=${{env.BUILD_ID}}-${{env.RUN_ID}}
+              type=raw,value=${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
+              type=raw,value=${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
 
         - name: "Docker build and push"
           id: build
@@ -99,15 +106,8 @@ jobs:
             sbom: true
             build-args: |
               JAR_FILE=./target/${{env.ARTIFACT_NAME}}-${{env.ARTIFACT_VERSION}}.jar
-            tags: |
-              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
-              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
-              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
-              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
 
         - name: "Evidence: GitHub Attest for docker image"
           continue-on-error: true
@@ -187,7 +187,14 @@ jobs:
           id: meta
           uses: docker/metadata-action@v6
           with:
-            images: ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}
+            images: |
+              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}
+              ${{env.DOCKER_REGISTRY}}/${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}
+            tags: |
+              type=raw,value=${{env.BUILD_ID}}
+              type=raw,value=${{env.BUILD_ID}}-${{env.RUN_ID}}
+              type=raw,value=${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
+              type=raw,value=${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
 
         - name: "Docker build and push"
           id: build
@@ -203,15 +210,8 @@ jobs:
             sbom: true
             build-args: |
               JAR_FILE=./target/${{env.ARTIFACT_NAME}}-${{env.ARTIFACT_VERSION}}.jar
-            tags: |
-              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
-              ${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
-              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
-              ${{env.DOCKER_ORG}}/${{env.ARTIFACT_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.RUN_ID}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.TODAYS_DATE}}
-              ${{ env.DOCKER_REGISTRY }}/${{env.DOCKER_ORG}}/${{env.BUILD_NAME}}:${{env.BUILD_ID}}-${{env.SHORT_COMMIT_CODE}}
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
               
         - name: "Evidence: GitHub Attest for docker image"
           continue-on-error: true
